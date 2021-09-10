@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 
-#define FILE_NAME "temp.ppm"
+#define FILE_NAME "out.png"
 
 int main(int argc, char *argv[]) {
   const unsigned image_width = 256;
