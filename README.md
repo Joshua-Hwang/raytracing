@@ -12,3 +12,5 @@ git submodule update
 
 Enter any directory and run `make` to create the program.
 Run `./a.out` to run the program and create the .png file.
+
+Changes in `main` determine when I create a new folder.

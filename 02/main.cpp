@@ -1,6 +1,6 @@
 #include "vec3.h"
 #include "color.h"
-#include "./external/lodepng/lodepng.h"
+#include "../external/lodepng/lodepng.h"
 
 #include <cstdio>
 #include <cstdlib>
