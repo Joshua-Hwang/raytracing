@@ -6,20 +6,28 @@
 #include "../external/lodepng/lodepng.h"
 
 #include <algorithm>
+#include <cmath>
+#include <cstdio>
 #include <execution>
 #include <iostream>
 #include <numeric>
 #include <chrono>
+#include <atomic>
 #include <pstl/glue_execution_defs.h>
 
 using std::make_shared;
 
 #define FILE_NAME "out.png"
 
-Color ray_color(const Ray &r, const Hittable &world) {
+Color ray_color(const Ray &r, const Hittable &world, int depth) {
   HitRecord rec;
+
+  // Stop recursion
+  if (depth <= 0) return Color(0, 0, 0);
+
   if (world.hit(r, 0, infinity, rec)) {
-    return 0.5 * (rec.normal + Color(1,1,1));
+    Point3 target = rec.p + rec.normal + random_in_unit_sphere();
+    return 0.5 * ray_color(Ray(rec.p, target - rec.p), world, depth-1);
   }
   // Didn't hit anything so this is empty air
   Vec3 unit_direction = unit_vector(r.direction());
@@ -29,12 +37,22 @@ Color ray_color(const Ray &r, const Hittable &world) {
   return (1.0 - t) * Color(1.0, 1.0, 1.0) + (t) * Color(0.5, 0.7, 1.0);
 }
 
+void write_color(Image &img, int x, int y, Color pixel_color) {
+  /* auto r = std::sqrt(pixel_color.x()); */
+  /* auto g = std::sqrt(pixel_color.y()); */
+  /* auto b = std::sqrt(pixel_color.z()); */
+
+  // gamma-correct for gamma=2.0
+  img.set({x, img.height - y}, pixel_color);
+}
+
 int main(int argc, char *argv[]) {
   // Image
   const auto aspect_ratio = 16.0 / 9.0;
-  const unsigned image_width = 1080;
+  const unsigned image_width = 400;
   const unsigned image_height = static_cast<int>(image_width / aspect_ratio);
   const int samples_per_pixel = 100;
+  const int max_depth = 50;
 
   // World
   HittableList world;
@@ -49,6 +67,7 @@ int main(int argc, char *argv[]) {
   std::vector<int> ys(image_height);
   std::iota(ys.begin(), ys.end(), 0);
   auto t1 = std::chrono::high_resolution_clock::now();
+  std::atomic_int lines(0);
   std::for_each(std::execution::par_unseq, ys.begin(), ys.end(), [&](int y) {
     for (int x = 0; x < image_width; ++x) {
       Color pixel_color(0, 0, 0);
@@ -56,11 +75,15 @@ int main(int argc, char *argv[]) {
         auto u = (double(x) + random_double()) / (image_width - 1);
         auto v = (double(y) + random_double()) / (image_height - 1);
         Ray r = cam.get_ray(u, v);
-        pixel_color += ray_color(r, world);
+        pixel_color += ray_color(r, world, max_depth);
       }
-      img.set({x,image_height - y}, pixel_color / samples_per_pixel);
+      write_color(img, x, y, pixel_color / samples_per_pixel);
     }
+    lines++;
+    std::cout << "\rFinished line " << lines << " of " << image_height << " lines" << std::flush;
   });
+  std::cout << std::endl;
+
   auto t2 = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double, std::milli> ms_double = t2 - t1;
   std::cerr << "Time taken: " << ms_double.count() << " ms" << std::endl;;
