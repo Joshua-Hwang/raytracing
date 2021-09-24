@@ -108,3 +108,7 @@ inline Vec3 random_in_unit_sphere() {
     if (p.length_squared() < 1) return p;
   }
 }
+
+inline Vec3 random_unit_vector() {
+    return unit_vector(random_in_unit_sphere());
+}
