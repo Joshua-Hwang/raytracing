@@ -3,6 +3,11 @@
 #include "camera.h"
 #include "hittable_list.h"
 #include "sphere.h"
+#include "material.h"
+#include "lambertian.h"
+#include "metal.h"
+#include "dielectric.h"
+#include "light.h"
 #include "../external/lodepng/lodepng.h"
 
 #include <algorithm>
@@ -14,19 +19,23 @@
 #include <chrono>
 #include <mutex>
 
-using std::make_shared;
-
 #define FILE_NAME "out.png"
 
 Color ray_color(const Ray &r, const Hittable &world, int depth) {
   HitRecord rec;
 
   // Stop recursion
-  if (depth <= 0) return Color(0, 0, 0);
+  if (depth <= 0) {
+      return Color(0, 0, 0);
+  }
 
   if (world.hit(r, 0.001, inf, rec)) {
-    Point3 target = rec.p + rec.normal + random_unit_vector();
-    return 0.5 * ray_color(Ray(rec.p, target - rec.p), world, depth-1);
+    Ray scattered;
+    Color attenuation;
+    if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+        return attenuation * ray_color(scattered, world, depth - 1);
+    }
+    return attenuation;
   }
   // Didn't hit anything so this is empty air
   Vec3 unit_direction = unit_vector(r.direction());
@@ -50,13 +59,22 @@ int main(int argc, char *argv[]) {
   const auto aspect_ratio = 16.0 / 9.0;
   const unsigned image_width = 1920;
   const unsigned image_height = static_cast<int>(image_width / aspect_ratio);
-  const int samples_per_pixel = 100;
+  const int samples_per_pixel = 10;
   const int max_depth = 50;
 
   // World
   HittableList world;
-  world.add(make_shared<Sphere>(Point3(0,0,-1), 0.5));
-  world.add(make_shared<Sphere>(Point3(0,-100.5,-1), 100));
+  auto material_ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
+  //auto material_center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+  auto material_center = std::make_shared<Light>(Color(1.0, 1.0, 1.0));
+  auto material_left   = std::make_shared<Dielectric>(1.5);
+  auto material_right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.3);
+
+  world.add(std::make_shared<Sphere>(Point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+  world.add(std::make_shared<Sphere>(Point3( 0.0,    0.0, -1.0),   0.5, material_center));
+  world.add(std::make_shared<Sphere>(Point3(-1.0,    0.0, -1.0),   0.5, material_left));
+  world.add(std::make_shared<Sphere>(Point3(-1.0,    0.0, -1.0),   -0.4, material_left));
+  world.add(std::make_shared<Sphere>(Point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
   // Camera
   Camera cam;
