@@ -8,13 +8,11 @@ class Metal : public Material {
 
         virtual bool scatter(const Ray &r_in, const HitRecord &rec, Color &attentuation, Ray &scattered) const override {
             Vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
-            scattered = Ray(rec.p, reflected + fuzz*random_in_unit_sphere());
-            if (dot(scattered.direction(), rec.normal) > 0) {
-                attentuation = albedo;
-                return true;
-            }
-            attentuation = Color(0.0, 0.0, 0.0);
-            return false;
+            do {
+                scattered = Ray(rec.p, reflected + fuzz*random_in_unit_sphere());
+            } while (dot(scattered.direction(), rec.normal) <= 0);
+            attentuation = albedo;
+            return true;
         }
 
     private:

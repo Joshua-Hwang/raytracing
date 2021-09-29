@@ -65,8 +65,8 @@ int main(int argc, char *argv[]) {
   // World
   HittableList world;
   auto material_ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-  //auto material_center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
-  auto material_center = std::make_shared<Light>(Color(1.0, 1.0, 1.0));
+  auto material_center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+  // auto material_center = std::make_shared<Light>(Color(1.0, 1.0, 1.0));
   auto material_left   = std::make_shared<Dielectric>(1.5);
   auto material_right  = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.3);
 
