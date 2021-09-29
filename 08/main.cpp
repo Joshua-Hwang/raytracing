@@ -57,9 +57,9 @@ void write_color(Image &img, int x, int y, Color pixel_color) {
 int main(int argc, char *argv[]) {
   // Image
   const auto aspect_ratio = 16.0 / 9.0;
-  const unsigned image_width = 1920;
+  const unsigned image_width = 600;
   const unsigned image_height = static_cast<int>(image_width / aspect_ratio);
-  const int samples_per_pixel = 10;
+  const int samples_per_pixel = 100;
   const int max_depth = 50;
 
   // World
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
   world.add(std::make_shared<Sphere>(Point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
   // Camera
-  Camera cam;
+  Camera cam(Point3(-2, 2, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 20.0, aspect_ratio);
 
   // Render
   Image img(image_width, image_height);
