@@ -14,7 +14,7 @@ class Lambertian : public Material {
             if (scatter_direction.near_zero()) {
                 scatter_direction = rec.normal;
             }
-            scattered = Ray(rec.p, scatter_direction);
+            scattered = Ray(rec.p, scatter_direction, r_in.time());
             attentuation = albedo;
             return true;
         }

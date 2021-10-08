@@ -58,12 +58,13 @@ HittableList random_scene() {
   HittableList world;
 
   auto ground_material = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-  world.add(std::make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
+  world.add(std::make_shared<Sphere>(Point3(0, -1000, 0), Point3(0, -1000, 0), 0.0, 1.0, 1000, ground_material));
 
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
       auto choose_mat = random_double();
       Point3 center(a + 0.9*random_double(), 0.2, b + 0.9*random_double());
+      Point3 center2 = Vec3(center);
 
       if ((center - Point3(4, 0.2, 0)).length() > 0.9) {
         std::shared_ptr<Material> sphere_material;
@@ -72,6 +73,7 @@ HittableList random_scene() {
           // diffuse
           auto albedo = Color::random() * Color::random();
           sphere_material = std::make_shared<Lambertian>(albedo);
+          center2 = center + Vec3(0, random_double(0, 0.5), 0);
         } else if (choose_mat < 0.95) {
           // metal
           auto albedo = Color::random(0.5, 1);
@@ -82,19 +84,19 @@ HittableList random_scene() {
           sphere_material = std::make_shared<Dielectric>(1.5);
         }
 
-        world.add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+        world.add(std::make_shared<Sphere>(center, center2, 0.0, 1.0, 0.2, sphere_material));
       }
     }
   }
 
   auto material1 = std::make_shared<Dielectric>(1.5);
-  world.add(std::make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
+  world.add(std::make_shared<Sphere>(Point3(0, 1, 0), Point3(0, 1, 0), 0.0, 1.0, 1.0, material1));
 
   auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
-  world.add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
+  world.add(std::make_shared<Sphere>(Point3(-4, 1, 0), Point3(-4, 1, 0), 0.0, 1.0, 1.0, material2));
 
   auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
-  world.add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
+  world.add(std::make_shared<Sphere>(Point3(4, 1, 0), Point3(4, 1, 0), 0.0, 1.0, 1.0, material3));
 
   return world;
 }
@@ -116,7 +118,7 @@ int main(int argc, char *argv[]) {
   Vec3 vup(0, 1, 0);
   auto dist_to_focus = 10.0;
   auto aperture = 0.1;
-  Camera cam(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus);
+  Camera cam(lookfrom, lookat, vup, 20.0, aspect_ratio, aperture, dist_to_focus, 0.0, 0.5);
 
   // Render
   Image img(image_width, image_height);
