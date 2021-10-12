@@ -11,6 +11,7 @@ class Sphere : public Hittable {
       : center0(cen0), center1(cen1), time0(time0), time1(time1), radius(r), mat_ptr(m) {};
 
     virtual bool hit(const Ray &r, double t_min, double t_max, HitRecord &rec) const override;
+    virtual bool bounding_box(double time0, double time1, Aabb &output_box) const override;
 
     Point3 center(double time) const {
       return center0 + ((time - time0) / (time1 - time0)) * (center1 - center0);
@@ -53,5 +54,18 @@ inline bool Sphere::hit(const Ray &r, double t_min, double t_max, HitRecord &rec
   Vec3 outward_normal = (rec.p - center(r.time())) / radius; // unit Vec3
   rec.set_face_normal(r, outward_normal);
   rec.mat_ptr = mat_ptr;
+  return true;
+}
+
+inline bool Sphere::bounding_box(double time0, double time1, Aabb &output_box) const {
+  Aabb box0(
+    center(time0) - Vec3(radius, radius, radius),
+    center(time0) + Vec3(radius, radius, radius));
+    
+  Aabb box1(
+    center(time1) - Vec3(radius, radius, radius),
+    center(time1) + Vec3(radius, radius, radius));
+
+  output_box = surrounding_box(box0, box1);
   return true;
 }
