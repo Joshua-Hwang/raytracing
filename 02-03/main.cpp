@@ -104,7 +104,7 @@ HittableList random_scene() {
 int main(int argc, char *argv[]) {
   // Image
   const auto aspect_ratio = 3.0 / 2.0;
-  const unsigned image_width = 100;
+  const unsigned image_width = 1200;
   const unsigned image_height = static_cast<int>(image_width / aspect_ratio);
   const int samples_per_pixel = 500;
   const int max_depth = 50;

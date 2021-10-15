@@ -7,32 +7,37 @@
 class Aabb {
   public:
     Aabb() {}
-    Aabb(const Point3 &a, const Point3& b) { minimum = a; maximum = b; }
+    Aabb(const Point3 &a, const Point3& b) {
+        bounds[0] = a;
+        bounds[1] = b;
+    }
 
-    Point3 min() const { return minimum; }
-    Point3 max() const { return maximum; }
+    Point3 min() const { return bounds[0]; }
+    Point3 max() const { return bounds[1]; }
 
-    bool hit(const Ray &r, double t0, double t1) const {
+    bool hit(const Ray &r, double tmin, double tmax) const {
       // taken from "An Efficient and Robust Ray-Box Intersection Algorithm"
-      float tmin, tmax, tymin, tymax, tzmin, tzmax;
-      tmin = (minimum[r.getSign(0)] - r.origin()[0]) * r.invDirection()[0];
-      tmax = (minimum[1-r.getSign(0)] - r.origin()[0]) * r.invDirection()[0];
-      tymin = (minimum[r.getSign(1)] - r.origin()[1]) * r.invDirection()[1];
-      tymax = (minimum[1-r.getSign(1)] - r.origin()[1]) * r.invDirection()[1];
+      float txmin, txmax, tymin, tymax, tzmin, tzmax;
+      txmin = (bounds[r.getSign(0)][0] - r.origin()[0]) * r.invDirection()[0];
+      txmax = (bounds[1-r.getSign(0)][0] - r.origin()[0]) * r.invDirection()[0];
+      if ( (tmin > txmax) || (txmin > tmax) ) return false;
+      if (txmin > tmin) tmin = txmin;
+      if (txmax < tmax) tmax = txmax;
+      tymin = (bounds[r.getSign(1)][1] - r.origin()[1]) * r.invDirection()[1];
+      tymax = (bounds[1-r.getSign(1)][1] - r.origin()[1]) * r.invDirection()[1];
       if ( (tmin > tymax) || (tymin > tmax) ) return false;
       if (tymin > tmin) tmin = tymin;
       if (tymax < tmax) tmax = tymax;
-      tzmin = (minimum[r.getSign(2)] - r.origin()[2]) * r.invDirection()[2];
-      tzmax = (minimum[1-r.getSign(2)] - r.origin()[2]) * r.invDirection()[2];
+      tzmin = (bounds[r.getSign(2)][2] - r.origin()[2]) * r.invDirection()[2];
+      tzmax = (bounds[1-r.getSign(2)][2] - r.origin()[2]) * r.invDirection()[2];
       if ( (tmin > tzmax) || (tzmin > tmax) ) return false;
       if (tzmin > tmin) tmin = tzmin;
       if (tzmax < tmax) tmax = tzmax;
-      return ( (tmin < t1) && (tmax > t0) );
+      return true;
     }
 
   private:
-    Point3 minimum;
-    Point3 maximum;
+    Point3 bounds[2];
 };
 
 inline Aabb surrounding_box(Aabb &box0, Aabb &box1) {
