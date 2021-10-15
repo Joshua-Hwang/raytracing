@@ -42,7 +42,6 @@ Color ray_color(const Ray &r, const Hittable &world, int depth) {
   Vec3 unit_direction = unit_vector(r.direction());
   // t is arbitrarily set as a single step of the y direction
   auto t = 0.5 * (unit_direction.y() + 1.0);
-  // As time continues the ray loses color.
   return (1.0 - t) * Color(1.0, 1.0, 1.0) + (t) * Color(0.5, 0.7, 1.0);
 }
 
@@ -105,7 +104,7 @@ HittableList random_scene() {
 int main(int argc, char *argv[]) {
   // Image
   const auto aspect_ratio = 3.0 / 2.0;
-  const unsigned image_width = 1200;
+  const unsigned image_width = 100;
   const unsigned image_height = static_cast<int>(image_width / aspect_ratio);
   const int samples_per_pixel = 500;
   const int max_depth = 50;

@@ -12,23 +12,22 @@ class Aabb {
     Point3 min() const { return minimum; }
     Point3 max() const { return maximum; }
 
-    bool hit(const Ray &r, double t_min, double t_max) const {
-      // iterate across dimensions
-      for (int a = 0; a < 3; a++) {
-        auto invD = 1.0f / r.direction()[a];
-        auto t0 = (minimum[a] - r.origin()[a]) * invD;
-        auto t1 = (maximum[a] - r.origin()[a]) * invD;
-        if (invD < 0.0f) std::swap(t0, t1);
-
-        // shrink upper and lower bound of t
-        t_min = t0 > t_min ? t0 : t_min;
-        t_max = t0 > t_max ? t1 : t_max;
-
-        // if boundary cannot exist return false
-        if (t_max <= t_min) return false;
-      }
-
-      return true;
+    bool hit(const Ray &r, double t0, double t1) const {
+      // taken from "An Efficient and Robust Ray-Box Intersection Algorithm"
+      float tmin, tmax, tymin, tymax, tzmin, tzmax;
+      tmin = (minimum[r.getSign(0)] - r.origin()[0]) * r.invDirection()[0];
+      tmax = (minimum[1-r.getSign(0)] - r.origin()[0]) * r.invDirection()[0];
+      tymin = (minimum[r.getSign(1)] - r.origin()[1]) * r.invDirection()[1];
+      tymax = (minimum[1-r.getSign(1)] - r.origin()[1]) * r.invDirection()[1];
+      if ( (tmin > tymax) || (tymin > tmax) ) return false;
+      if (tymin > tmin) tmin = tymin;
+      if (tymax < tmax) tmax = tymax;
+      tzmin = (minimum[r.getSign(2)] - r.origin()[2]) * r.invDirection()[2];
+      tzmax = (minimum[1-r.getSign(2)] - r.origin()[2]) * r.invDirection()[2];
+      if ( (tmin > tzmax) || (tzmin > tmax) ) return false;
+      if (tzmin > tmin) tmin = tzmin;
+      if (tzmax < tmax) tmax = tzmax;
+      return ( (tmin < t1) && (tmax > t0) );
     }
 
   private:
@@ -36,7 +35,7 @@ class Aabb {
     Point3 maximum;
 };
 
-inline Aabb surrounding_box(Aabb box0, Aabb box1) {
+inline Aabb surrounding_box(Aabb &box0, Aabb &box1) {
   Point3 small(std::min(box0.min().x(), box1.min().x()),
     fmin(box0.min().y(), box1.min().y()),
     fmin(box0.min().z(), box1.min().z()));
