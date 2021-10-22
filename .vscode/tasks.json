@@ -6,7 +6,6 @@
             "label": "C/C++: cl.exe build active file",
             "command": "cl.exe",
             "args": [
-                "/Zi",
                 "/O2",
                 "/std:c++17",
                 "/EHsc",
