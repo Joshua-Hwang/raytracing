@@ -10,6 +10,7 @@
 #include "light.h"
 #include "bvh.h"
 #include "checker_texture.h"
+#include "noise_texture.h"
 
 #include "../external/lodepng/lodepng.h"
 
@@ -103,10 +104,20 @@ HittableList random_scene() {
   return world;
 }
 
+HittableList two_perlin_spheres() {
+    HittableList objects;
+
+    auto perlin_texture = std::make_shared<NoiseTexture>(10);
+    objects.add(std::make_shared<Sphere>(Point3(0, -1000, 0), Point3(0, -1000, 0), 0.0, 1.0, 1000, std::make_shared<Lambertian>(perlin_texture)));
+    objects.add(std::make_shared<Sphere>(Point3(0, 2, 0), Point3(0, 2, 0), 0.0, 1.0, 2, std::make_shared<Lambertian>(perlin_texture)));
+
+    return objects;
+}
+
 int main(int argc, char *argv[]) {
   // Image
   const auto aspect_ratio = 3.0 / 2.0;
-  const unsigned image_width = 1200;
+  const unsigned image_width = 300;
   const unsigned image_height = static_cast<int>(image_width / aspect_ratio);
   const int samples_per_pixel = 500;
   const int max_depth = 50;
@@ -114,7 +125,8 @@ int main(int argc, char *argv[]) {
   const double time1 = 0.5;
 
   // World
-  auto world = BvhNode(random_scene(), time0, time1);
+  //auto world = BvhNode(random_scene(), time0, time1);
+  auto world = two_perlin_spheres();
 
   // Camera
   Point3 lookfrom(13, 2, 3);
