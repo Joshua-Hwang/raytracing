@@ -26,27 +26,24 @@
 
 #define FILE_NAME "out.png"
 
-Color ray_color(const Ray &r, const Hittable &world, int depth) {
+Color ray_color(const Ray &r, const Color &background, const Hittable &world, int depth) {
   HitRecord rec;
 
   // Stop recursion
   if (depth <= 0) {
       return Color(0, 0, 0);
   }
-
-  if (world.hit(r, 0.001, inf, rec)) {
-    Ray scattered;
-    Color attenuation;
-    if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-        return attenuation * ray_color(scattered, world, depth - 1);
-    }
-    return attenuation;
+  if (!world.hit(r, 0.001, inf, rec)) {
+      return background;
   }
-  // Didn't hit anything so this is empty air
-  Vec3 unit_direction = unit_vector(r.direction());
-  // t is arbitrarily set as a single step of the y direction
-  auto t = 0.5 * (unit_direction.y() + 1.0);
-  return (1.0 - t) * Color(1.0, 1.0, 1.0) + (t) * Color(0.5, 0.7, 1.0);
+  Ray scattered;
+  Color attenuation;
+  Color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+
+  if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+      return emitted;
+  }
+  return emitted + attenuation * ray_color(scattered, background, world, depth - 1);
 }
 
 void write_color(Image &img, int x, int y, Color pixel_color) {
@@ -134,6 +131,7 @@ int main(int argc, char *argv[]) {
   const double time1 = 0.5;
 
   // World
+  Color background(0, 0, 0);
   //auto world = BvhNode(random_scene(), time0, time1);
   //auto world = two_perlin_spheres();
   auto world = earth();
@@ -160,7 +158,7 @@ int main(int argc, char *argv[]) {
         auto u = (x + random_double()) / (image_width - 1);
         auto v = (y + random_double()) / (image_height - 1);
         Ray r = cam.get_ray(u, v);
-        pixel_color += ray_color(r, world, max_depth);
+        pixel_color += ray_color(r, background, world, max_depth);
       }
       write_color(img, x, y, pixel_color / samples_per_pixel);
     }
