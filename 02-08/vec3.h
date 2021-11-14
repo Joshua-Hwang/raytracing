@@ -1,0 +1,140 @@
+#pragma once
+
+#include "rtweekend.h"
+#include <cmath>
+#include <iostream>
+#include <ostream>
+
+using std::sqrt;
+
+class Vec3 {
+public:
+  Vec3() : e{0, 0, 0} {}
+  Vec3(double e0, double e1, double e2) : e{e0, e1, e2} {}
+  Vec3(const Vec3 &v) : e{v[0], v[1], v[2]} {}
+
+  double x() const { return e[0]; }
+  double y() const { return e[1]; }
+  double z() const { return e[2]; }
+
+  Vec3 operator-() const { return Vec3(-e[0], -e[1], -e[2]); }
+  double operator[](int i) const { return e[i]; }
+  double &operator[](int i) { return e[i]; }
+
+  Vec3 &operator+=(const Vec3 &v) {
+    e[0] += v.e[0];
+    e[1] += v.e[1];
+    e[2] += v.e[2];
+    return *this;
+  }
+
+  Vec3 &operator*=(const double t) {
+    e[0] *= t;
+    e[1] *= t;
+    e[2] *= t;
+    return *this;
+  }
+
+  Vec3 &operator/=(const double t) { return *this *= 1 / t; }
+
+  double length() const { return sqrt(length_squared()); }
+
+  double length_squared() const {
+    return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
+  }
+
+  inline static Vec3 random() {
+    return Vec3(random_double(), random_double(), random_double());
+  }
+
+  inline static Vec3 random(double min, double max) {
+    return Vec3(random_double(min, max), random_double(min, max),
+                random_double(min, max));
+  }
+
+  inline bool near_zero() const {
+    const auto s = 1e-8;
+    return (std::abs(e[0]) < s) && (std::abs(e[1]) < s) && (std::abs(e[2]) < s);
+  }
+
+private:
+  double e[3];
+};
+
+using Point3 = Vec3; // for 3d points
+using Color = Vec3;  // for rgb colors
+
+inline std::ostream &operator<<(std::ostream &out, const Vec3 &v) {
+  return out << v.x() << ' ' << v.y() << ' ' << v.z();
+}
+
+inline Vec3 operator+(const Vec3 &u, const Vec3 &v) {
+  return Vec3(u.x() + v.x(), u.y() + v.y(), u.z() + v.z());
+}
+
+inline Vec3 operator-(const Vec3 &u, const Vec3 &v) {
+  return Vec3(u.x() - v.x(), u.y() - v.y(), u.z() - v.z());
+}
+
+inline Vec3 operator*(const Vec3 &u, const Vec3 &v) {
+  return Vec3(u.x() * v.x(), u.y() * v.y(), u.z() * v.z());
+}
+
+inline Vec3 operator*(double t, const Vec3 &v) {
+  return Vec3(t * v.x(), t * v.y(), t * v.z());
+}
+
+inline Vec3 operator*(const Vec3 &v, double t) { return t * v; }
+
+inline Vec3 operator/(const Vec3 &v, double t) { return (1 / t) * v; }
+
+inline double dot(const Vec3 &u, const Vec3 &v) {
+  return u.x() * v.x() + u.y() * v.y() + u.z() * v.z();
+}
+
+inline Vec3 cross(const Vec3 &u, const Vec3 &v) {
+  return Vec3(u.y() * v.z() - u.z() * v.y(), u.z() * v.x() - u.x() * v.z(),
+              u.x() * v.y() - u.y() * v.x());
+}
+
+inline Vec3 unit_vector(const Vec3 &v) { return v / v.length(); }
+
+inline Vec3 random_in_unit_sphere() {
+  while (true) {
+    auto p = Vec3::random(-1, 1);
+    if (p.length_squared() < 1)
+      return p;
+  }
+}
+
+inline Vec3 random_unit_vector() {
+  return unit_vector(random_in_unit_sphere());
+}
+
+inline Vec3 random_in_hemisphere(const Vec3 &normal) {
+  Vec3 in_unit_sphere = random_in_unit_sphere();
+  if (dot(in_unit_sphere, normal) > 0.0) { // same hemisphere are normal
+    return in_unit_sphere;
+  } else {
+    return -in_unit_sphere;
+  }
+}
+
+inline Vec3 random_in_unit_disk() {
+  while (true) {
+    auto p = Vec3(random_double(-1, 1), random_double(-1, 1), 0);
+    if (p.length_squared() < 1)
+      return p;
+  }
+}
+
+inline Vec3 reflect(const Vec3 &v, const Vec3 &n) {
+  return v - 2 * dot(v, n) * n;
+}
+
+inline Vec3 refract(const Vec3 &uv, const Vec3 &n, double etai_over_etat) {
+  auto cos_theta = std::min(dot(-uv, n), 1.0);
+  Vec3 r_out_perp = etai_over_etat * (uv + cos_theta * n);
+  Vec3 r_out_parallel = -sqrt(std::abs(1.0 - r_out_perp.length_squared())) * n;
+  return r_out_perp + r_out_parallel;
+}
