@@ -3,3 +3,6 @@ a.out
 *.obj
 *.ilk
 *.pdb
+*.plist
+
+compile_commands*
