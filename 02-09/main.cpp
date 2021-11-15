@@ -283,7 +283,7 @@ int main(int argc, char *argv[]) {
 
   // Image
   const auto aspect_ratio = 1.0;
-  const unsigned image_width = 800;
+  const unsigned image_width = 1920;
   const unsigned image_height = static_cast<int>(image_width / aspect_ratio);
   const int samples_per_pixel = 10000;
   const int max_depth = 50;
@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) {
   double vfov = 40.0;
   Vec3 vup(0, 1, 0);
   auto dist_to_focus = 10.0;
-  auto aperture = 0.1;
+  auto aperture = 0.0;
   Camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus,
              time0, time1);
 
